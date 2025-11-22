@@ -25,19 +25,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         throws ServletException, IOException
     {
         String header =request.getHeader("Authorization");
-
         if(header != null && header.startsWith("Bearer ")){
             String token = header.substring(7);
-
             try {
                 if(jwtProvider.validateToken(token)){
                     String email =jwtProvider.getEmailFromToken(token);
 
                     // Only set authentication if it's not already set
                     if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        UserDetails userDetails = userDetailsService.loadUserByEmail(email);
-
-
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails,
@@ -47,7 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(auth);
-
                     } else {
                         logger.warn("Token is valid but user is already authenticated or email is null");
                     }

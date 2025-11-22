@@ -27,12 +27,6 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-//    public JwtProvider(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long expirationMs){
-//        this.key = Keys.hmacShaKeyFor(secret.getBytes());
-//        this.expirationMs = expirationMs;
-//    }
-
-
     // Generate token and sign with SHA 256
     public String generateToken(String email){
         return Jwts.builder()
