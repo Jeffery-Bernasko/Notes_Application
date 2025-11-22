@@ -7,11 +7,15 @@ import org.example.notes_application.model.Notes;
 import org.example.notes_application.model.User;
 import org.example.notes_application.service.NotesService;
 import org.example.notes_application.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
@@ -66,10 +70,23 @@ public class NotesController {
     }
 
     @GetMapping
-    public ResponseEntity<List<NoteResponseDTO>> getNotes(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Page<NoteResponseDTO>> getNotes(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<String> tags,
+            @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
         User user = getCurrentUser(userDetails);
-        return ResponseEntity.ok(notesService.listNotes(user));
+
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(notesService.searchNotes(search, user, pageable));
+        } else if (tags != null && !tags.isEmpty()) {
+            return ResponseEntity.ok(notesService.filterByTags(tags, user, pageable));
+        } else {
+            return ResponseEntity.ok(notesService.listNotes(user, pageable));
+        }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<NoteResponseDTO> getNote(
@@ -85,33 +102,35 @@ public class NotesController {
     }
 
     @GetMapping("/by-search")
-    public ResponseEntity<List<NoteResponseDTO>> getNotesBySearch(
+    public ResponseEntity<Page<NoteResponseDTO>> getNotesBySearch(
             @RequestParam(required = false) String search,
+            @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         User user = getCurrentUser(userDetails);
 
-        List<NoteResponseDTO> result = (search != null && !search.isBlank())
-                ? notesService.searchNotes(search, user)
-                : notesService.listNotes(user);
+        Page<NoteResponseDTO> result = (search != null && !search.isBlank())
+                ? notesService.searchNotes(search, user,pageable)
+                : notesService.listNotes(user,pageable);
 
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/by-tags")
-    public ResponseEntity<List<NoteResponseDTO>> getNotesByTags(
+    public ResponseEntity<Page<NoteResponseDTO>> getNotesByTags(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) List<String> tags,
+            @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         User user = getCurrentUser(userDetails);
 
         if (search != null && !search.isBlank()) {
-            return ResponseEntity.ok(notesService.searchNotes(search, user));
+            return ResponseEntity.ok(notesService.searchNotes(search, user,pageable));
         } else if (tags != null && !tags.isEmpty()) {
-            return ResponseEntity.ok(notesService.filterByTags(tags, user));
+            return ResponseEntity.ok(notesService.filterByTags(tags, user,pageable));
         } else {
-            return ResponseEntity.ok(notesService.listNotes(user));
+            return ResponseEntity.ok(notesService.listNotes(user,pageable));
         }
     }
 

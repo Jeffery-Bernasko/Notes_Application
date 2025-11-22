@@ -7,8 +7,10 @@ import org.example.notes_application.dto.NoteResponseDTO;
 import org.example.notes_application.model.Notes;
 import org.example.notes_application.model.User;
 import org.example.notes_application.repository.NoteRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,16 +28,6 @@ public class NotesService {
                 .owner(user)
                 .build();
         return noteRepository.save(notes);
-    }
-
-    public Optional<Notes> updateNote(Long noteId, Notes updatedNote, User user) {
-        return noteRepository.findByIdAndOwnerAndDeletedAtIsNull(noteId, user)
-                .map(existing -> {
-                    existing.setTitle(updatedNote.getTitle());
-                    existing.setContent(updatedNote.getContent());
-                    existing.setTags(updatedNote.getTags());
-                    return noteRepository.save(existing);
-                });
     }
 
     public Optional<Notes> updateNote(Long id, NoteRequestDTO dto, User user) {
@@ -71,11 +63,9 @@ public class NotesService {
                 }).orElse(false);
     }
 
-    public List<NoteResponseDTO> listNotes(User user) {
-        return noteRepository.findAllByOwnerAndDeletedAtIsNull(user)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<NoteResponseDTO> listNotes(User user, Pageable pageable) {
+        return noteRepository.findAllByOwnerAndDeletedAtIsNull(user,pageable)
+                .map(this::toDto);
     }
 
     public Optional<Notes> getNoteById(Long noteId, User user) {
@@ -83,18 +73,14 @@ public class NotesService {
     }
 
 
-    public List<NoteResponseDTO> searchNotes(String search, User user){
-        return noteRepository.searchByTitleOrContent(search,user)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<NoteResponseDTO> searchNotes(String search, User user, Pageable pageable){
+        return noteRepository.searchByTitleOrContent(search, user, pageable)
+                .map(this::toDto);
     }
 
-    public List<NoteResponseDTO> filterByTags(List<String> tags, User owner) {
-        return noteRepository.findByTagsIn(tags, owner)
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public Page<NoteResponseDTO> filterByTags(List<String> tags, User owner, Pageable pageable) {
+        return noteRepository.findByTagsIn(tags, owner, pageable)
+                .map(this::toDto);
     }
 
 
