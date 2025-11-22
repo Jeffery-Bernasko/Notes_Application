@@ -1,5 +1,6 @@
 package org.example.notes_application.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.notes_application.dto.NoteRequestDTO;
 import org.example.notes_application.dto.NoteResponseDTO;
@@ -32,7 +33,7 @@ public class NotesController {
     }
 
     @PostMapping
-    public ResponseEntity<NoteResponseDTO> createNote(@RequestBody NoteRequestDTO dto,@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<NoteResponseDTO> createNote(@Valid @RequestBody NoteRequestDTO dto, @AuthenticationPrincipal UserDetails userDetails){
         User user = getCurrentUser(userDetails);
         Notes notes = notesService.createNote(dto,user);
         return ResponseEntity.ok(toDto(notes));
@@ -41,7 +42,7 @@ public class NotesController {
     @PutMapping("/{id}")
     public ResponseEntity<NoteResponseDTO> updateNote(
             @PathVariable Long id,
-            @RequestBody NoteRequestDTO dto,
+            @Valid @RequestBody NoteRequestDTO dto,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         User user = getCurrentUser(userDetails);
