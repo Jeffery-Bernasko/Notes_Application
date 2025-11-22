@@ -83,6 +83,21 @@ public class NotesService {
     }
 
 
+    public List<NoteResponseDTO> searchNotes(String search, User user){
+        return noteRepository.searchByTitleOrContent(search,user)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<NoteResponseDTO> filterByTags(List<String> tags, User owner) {
+        return noteRepository.findByTagsIn(tags, owner)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+
     private NoteResponseDTO toDto(Notes note) {
         NoteResponseDTO dto = new NoteResponseDTO();
         dto.setId(note.getId());

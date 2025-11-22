@@ -54,6 +54,17 @@ public class NotesController {
         return notesService.restoreNote(id,user) ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> softDelete(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = getCurrentUser(userDetails);
+        return notesService.softDeleteNote(id, user)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+
     @GetMapping
     public ResponseEntity<List<NoteResponseDTO>> getNotes(@AuthenticationPrincipal UserDetails userDetails) {
         User user = getCurrentUser(userDetails);
@@ -71,6 +82,37 @@ public class NotesController {
                 .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/by-search")
+    public ResponseEntity<List<NoteResponseDTO>> getNotesBySearch(
+            @RequestParam(required = false) String search,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = getCurrentUser(userDetails);
+
+        List<NoteResponseDTO> result = (search != null && !search.isBlank())
+                ? notesService.searchNotes(search, user)
+                : notesService.listNotes(user);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/by-tags")
+    public ResponseEntity<List<NoteResponseDTO>> getNotesByTags(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<String> tags,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = getCurrentUser(userDetails);
+
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(notesService.searchNotes(search, user));
+        } else if (tags != null && !tags.isEmpty()) {
+            return ResponseEntity.ok(notesService.filterByTags(tags, user));
+        } else {
+            return ResponseEntity.ok(notesService.listNotes(user));
+        }
     }
 
 
