@@ -5,6 +5,12 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+  mvc:
+    static-path-pattern: /static/**
   config:
     import: optional:file:.env.local
 
@@ -35,6 +41,8 @@ jwt:
 logging:
   level:
     org.springframework.security: DEBUG
+
+
 
 server:
   port: 8001
