@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>User Login</title>
+    <title>User Signup</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-image: url('https://media.istockphoto.com/id/1279862993/photo/firewall-and-internet-security-concept-secured-access.jpg?s=612x612&w=0&k=20&c=ScokuWob0eqFTG40Dt3Pm7rfZZTUvglDwjmkwzUpqx8='); /* Replace 'login_background.jpg' with your image file path */
+            background-image: url('https://media.istockphoto.com/id/1279862993/photo/firewall-and-internet-security-concept-secured-access.jpg?s=612x612&w=0&k=20&c=ScokuWob0eqFTG40Dt3Pm7rfZZTUvglDwjmkwzUpqx8=');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -59,15 +59,61 @@
 </head>
 <body>
 <div class="container">
-    <h1>Login</h1>
-    <form th:action="@{/api/auth/signup}" method="post">
-        <label for="userEmail">Email:</label>
-        <input type="email" id="userEmail" name="userEmail" required><br>
+    <h1>Sign Up</h1>
+    <form class="signup-form" id="signup-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br>
-        <button type="submit">Signup</button>
+
+        <button type="submit">Sign Up</button>
     </form>
     <p>Already have an account? <a th:href="@{/ui/login}">Login</a></p>
 </div>
+
+<script>
+    // Inline script to ensure it always runs
+    document.addEventListener('DOMContentLoaded', function() {
+        const signupForm = document.getElementById('signup-form');
+
+        if (signupForm) {
+            signupForm.addEventListener('submit', async function(e) {
+                e.preventDefault(); // Prevent default form submission
+                console.log('Signup form submitted!');
+
+                try {
+                    const res = await fetch('/api/auth/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: document.getElementById('email').value,
+                            password: document.getElementById('password').value
+                        })
+                    });
+
+                    if (res.ok) {
+                        const authResponse = await res.json();
+                        const jwtToken = authResponse.token;
+
+                        // Save the token to local storage
+                        localStorage.setItem('jwt_token', jwtToken);
+
+                        // Redirect to the notes page
+                        window.location.href = '/ui/notes';
+                    } else {
+                        const error = await res.json().catch(() => ({ message: 'Signup failed' }));
+                        alert('Signup failed: ' + (error.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Signup error:', error);
+                    alert('An error occurred during signup. Please try again.');
+                }
+            });
+        } else {
+            console.error('Signup form not found!');
+        }
+    });
+</script>
 </body>
 </html>

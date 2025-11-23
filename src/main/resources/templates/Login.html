@@ -7,7 +7,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-image: url('https://media.istockphoto.com/id/1279862993/photo/firewall-and-internet-security-concept-secured-access.jpg?s=612x612&w=0&k=20&c=ScokuWob0eqFTG40Dt3Pm7rfZZTUvglDwjmkwzUpqx8='); /* Replace 'login_background.jpg' with your image file path */
+            background-image: url('https://media.istockphoto.com/id/1279862993/photo/firewall-and-internet-security-concept-secured-access.jpg?s=612x612&w=0&k=20&c=ScokuWob0eqFTG40Dt3Pm7rfZZTUvglDwjmkwzUpqx8=');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -60,7 +60,7 @@
 <body>
 <div class="container">
     <h1>Login</h1>
-    <form class="login-form" method="post" id="login-form">
+    <form class="login-form" id="login-form">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required><br>
 
@@ -72,6 +72,48 @@
     <p>Don't have an account? <a th:href="@{/ui/signup}">Sign Up</a></p>
 </div>
 
-<script src="/js/script.js"></script>
+<script>
+    // Inline script to ensure it always runs
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault(); // Prevent default form submission
+                console.log('Login form submitted!');
+
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: document.getElementById('email').value,
+                            password: document.getElementById('password').value
+                        })
+                    });
+
+                    if (res.ok) {
+                        const authResponse = await res.json();
+                        const jwtToken = authResponse.token;
+
+                        // Save the token to local storage
+                        localStorage.setItem('jwt_token', jwtToken);
+
+                        // Redirect to the notes page
+                        window.location.href = '/ui/notes';
+                    } else {
+                        const error = await res.json().catch(() => ({ message: 'Login failed' }));
+                        alert('Login failed: ' + (error.message || 'Invalid credentials'));
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('An error occurred during login. Please try again.');
+                }
+            });
+        } else {
+            console.error('Login form not found!');
+        }
+    });
+</script>
 </body>
 </html>
