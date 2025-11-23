@@ -14,6 +14,7 @@ spring:
   config:
     import: optional:file:.env.local
 
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -41,8 +42,15 @@ jwt:
 logging:
   level:
     org.springframework.security: DEBUG
+    org.springdoc.api: DEBUG
 
 
 
 server:
   port: 8001
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html

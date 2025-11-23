@@ -1,5 +1,6 @@
 package org.example.notes_application.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.notes_application.dto.NoteRequestDTO;
@@ -33,6 +34,7 @@ public class NotesController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new note")
     public ResponseEntity<NoteResponseDTO> createNote(@Valid @RequestBody NoteRequestDTO dto, @AuthenticationPrincipal UserDetails userDetails){
         User user = getCurrentUser(userDetails);
         Notes notes = notesService.createNote(dto,user);
@@ -40,6 +42,7 @@ public class NotesController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update Note")
     public ResponseEntity<NoteResponseDTO> updateNote(
             @PathVariable Long id,
             @Valid @RequestBody NoteRequestDTO dto,
@@ -54,12 +57,14 @@ public class NotesController {
 
 
     @PutMapping("/{id}/restore")
+    @Operation(summary = "Restore a Note")
     public ResponseEntity<Void> restoreNote(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails){
         User user = getCurrentUser(userDetails);
         return notesService.restoreNote(id,user) ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Soft Delete a Note")
     public ResponseEntity<Void> softDelete(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails
@@ -71,6 +76,7 @@ public class NotesController {
     }
 
     @GetMapping
+    @Operation(summary = "Get all the notes")
     public ResponseEntity<Page<NoteResponseDTO>> getNotes(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) List<String> tags,
@@ -89,6 +95,7 @@ public class NotesController {
     }
 
     @GetMapping("/deleted")
+    @Operation(summary = "Get all soft deleted Notes")
     public ResponseEntity<Page<NoteResponseDTO>> getDeletedNotes(
             @PageableDefault(sort = "deletedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails
@@ -98,6 +105,7 @@ public class NotesController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a specific note by ID")
     public ResponseEntity<NoteResponseDTO> getNote(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails
@@ -111,6 +119,7 @@ public class NotesController {
     }
 
     @GetMapping("/by-search")
+    @Operation(summary = "Search a note/notes")
     public ResponseEntity<Page<NoteResponseDTO>> getNotesBySearch(
             @RequestParam(required = false) String search,
             @PageableDefault(sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
@@ -126,6 +135,7 @@ public class NotesController {
     }
 
     @GetMapping("/by-tags")
+    @Operation(summary = "Get notes by Tag Filtering")
     public ResponseEntity<Page<NoteResponseDTO>> getNotesByTags(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) List<String> tags,
