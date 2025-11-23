@@ -1,15 +1,13 @@
+version: '3.8'
+
 services:
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    env_file:
-      - .env
+  # 1. PostgreSQL Database Service
   db:
-    image: postgres:15
+    image: postgres:15-alpine # Use 'alpine' for a smaller image
+    container_name: notes-postgres
+    restart: always
     environment:
+      # Credentials used by all services (db, flyway, notes-app)
       POSTGRES_DB: Notes_App_DB
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -17,6 +15,53 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck: # Essential: Ensures the database is ready to accept connections before Flyway starts
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Notes_App_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Flyway Migration Service
+  # This runs your Flyway SQL scripts (V1, V2, etc.) to prepare the schema.
+  flyway:
+    image: flyway/flyway:9.22.3-alpine # Use a modern, slim Flyway image
+    container_name: notes-flyway
+    command: -configFiles=/flyway/conf/flyway.conf migrate
+    volumes:
+      # Mount your SQL migration scripts (expected path: src/main/resources/db/migration)
+      - ./src/main/resources/db/migration:/flyway/sql
+      # Mount the configuration file for Flyway
+      - ./flyway.conf:/flyway/conf/flyway.conf
+    environment:
+      # Inject connection details for Flyway to run migrations
+      FLYWAY_URL: jdbc:postgresql://db:5432/Notes_App_DB
+      FLYWAY_USER: postgres
+      FLYWAY_PASSWORD: password
+    depends_on:
+      db:
+        condition: service_healthy # Wait for the DB service to be healthy
+
+  # 3. Spring Boot Application Service (Renamed from 'app' to 'notes-app' for clarity)
+  notes-app:
+    build: .
+    container_name: notes-app
+    restart: always
+    # CRITICAL: Wait for Flyway to finish migrations successfully before starting Spring Boot
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+
+    environment:
+      # CRITICAL: Map database credentials to the SPRING_DATASOURCE environment variables
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/Notes_App_DB
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      # Include your JWT secret here for the application
+      JWT_SECRET: password # Change this to your actual secret if you use .env
+
+    ports:
+      # Corrected port mapping: 8001 is the internal port from your application.yaml
+      - "8001:8001"
 
 volumes:
   pgdata:
