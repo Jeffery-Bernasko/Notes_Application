@@ -68,6 +68,11 @@ public class NotesService {
                 .map(this::toDto);
     }
 
+    public Page<NoteResponseDTO> listDeletedNotes(User user, Pageable pageable) {
+        return noteRepository.findAllByOwnerAndDeletedAtIsNotNull(user, pageable)
+                .map(this::toDto);
+    }
+
     public Optional<Notes> getNoteById(Long noteId, User user) {
         return noteRepository.findByIdAndOwnerAndDeletedAtIsNull(noteId, user);
     }

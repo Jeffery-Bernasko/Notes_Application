@@ -25,43 +25,49 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException
     {
-        String header =request.getHeader("Authorization");
         String token = null;
-        if(header != null && header.startsWith("Bearer ")){
-             token = header.substring(7);
-            try {
-                if(jwtProvider.validateToken(token)){
-                    String email =jwtProvider.getEmailFromToken(token);
+        String header =request.getHeader("Authorization");
 
-                    // Only set authentication if it's not already set
-                    if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
+        if(header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
 
-                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    } else {
-                        logger.warn("Token is valid but user is already authenticated or email is null");
-                    }
-                }
-            } catch (Exception e){
-                logger.error("Cannot set user authentication: {}", e);
-            }
-        } else {
-            if(request.getCookies() != null){
-                for(Cookie cookie : request.getCookies()){
-                    if("jwt".equals(cookie.getName())){
-                        cookie.getValue();
-                        break;
-                    }
+        }
+
+        // If no Bearer token, check cookies
+        if (token == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
                 }
             }
         }
+        if(token != null) {
+        try {
+            if (jwtProvider.validateToken(token)) {
+                String email = jwtProvider.getEmailFromToken(token);
+
+                // Only set authentication if it's not already set
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    logger.warn("Token is valid but user is already authenticated or email is null");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication: {}", e);
+        }
+    }
+
             filterChain.doFilter(request,response);
     }
 }

@@ -88,6 +88,14 @@ public class NotesController {
         }
     }
 
+    @GetMapping("/deleted")
+    public ResponseEntity<Page<NoteResponseDTO>> getDeletedNotes(
+            @PageableDefault(sort = "deletedAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User user = getCurrentUser(userDetails);
+        return ResponseEntity.ok(notesService.listDeletedNotes(user, pageable));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<NoteResponseDTO> getNote(

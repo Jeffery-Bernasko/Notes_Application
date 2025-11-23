@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface NoteRepository extends JpaRepository<Notes, Long>, JpaSpecificationExecutor<Notes> {
     Page<Notes> findAllByOwnerAndDeletedAtIsNull(User owner, Pageable pageable);
 
+    Page<Notes> findAllByOwnerAndDeletedAtIsNotNull(User owner, Pageable pageable);
+
     @Query("SELECT n FROM Notes n WHERE n.owner = :owner AND n.deletedAt IS NULL AND " +
             "(LOWER(n.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(n.content) LIKE LOWER(CONCAT('%', :search, '%')))")

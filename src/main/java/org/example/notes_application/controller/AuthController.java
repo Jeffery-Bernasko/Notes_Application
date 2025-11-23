@@ -27,19 +27,9 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> signup(@RequestBody @Valid AuthRequest request,HttpServletResponse response) {
-        return getToken(request, response);
-    }
+        AuthResponse authResponse = authService.signup(request);
 
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest request, HttpServletResponse response) {
-        return getToken(request, response);
-    }
-
-    private ResponseEntity<AuthResponse> getToken(@RequestBody @Valid AuthRequest request, HttpServletResponse response) {
-        String token = authService.login(request).getToken();
-
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt",token)
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", authResponse.getToken())
                 .httpOnly(true)
                 .path("/")
                 .maxAge(Duration.ofHours(1))
@@ -47,6 +37,29 @@ public class AuthController {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-        return ResponseEntity.ok().build();
+
+        // Return the token in the response body
+        return ResponseEntity.ok(authResponse);
     }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid AuthRequest request, HttpServletResponse response) {
+        // Call login service method
+        AuthResponse authResponse = authService.login(request);
+
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", authResponse.getToken())
+                .httpOnly(true)
+                .path("/")
+                .maxAge(Duration.ofHours(1))
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+        // Return the token in the response body
+        return ResponseEntity.ok(authResponse);
+    }
+
+
 }
