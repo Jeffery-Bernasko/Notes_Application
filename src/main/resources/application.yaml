@@ -11,8 +11,8 @@ spring:
     suffix: .html
   mvc:
     static-path-pattern: /static/**
-  config:
-    import: optional:file:.env.local
+#  config:
+#    import: optional:file:.env
 
 
   jpa:

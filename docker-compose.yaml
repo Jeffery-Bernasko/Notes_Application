@@ -51,13 +51,15 @@ services:
       flyway:
         condition: service_completed_successfully
 
-    environment:
-      # CRITICAL: Map database credentials to the SPRING_DATASOURCE environment variables
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/Notes_App_DB
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      # Include your JWT secret here for the application
-      JWT_SECRET: password # Change this to your actual secret if you use .env
+    env_file:
+      - .env
+#    environment:
+#      # CRITICAL: Map database credentials to the SPRING_DATASOURCE environment variables
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/Notes_App_DB
+#      SPRING_DATASOURCE_USERNAME: postgres
+#      SPRING_DATASOURCE_PASSWORD: password
+#      # Include your JWT secret here for the application
+#      JWT_SECRET: password # Change this to your actual secret if you use .env
 
     ports:
       # Corrected port mapping: 8001 is the internal port from your application.yaml
