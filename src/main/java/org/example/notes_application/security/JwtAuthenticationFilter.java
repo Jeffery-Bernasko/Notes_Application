@@ -2,6 +2,7 @@ package org.example.notes_application.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         throws ServletException, IOException
     {
         String header =request.getHeader("Authorization");
+        String token = null;
         if(header != null && header.startsWith("Bearer ")){
-            String token = header.substring(7);
+             token = header.substring(7);
             try {
                 if(jwtProvider.validateToken(token)){
                     String email =jwtProvider.getEmailFromToken(token);
@@ -49,6 +51,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e){
                 logger.error("Cannot set user authentication: {}", e);
+            }
+        } else {
+            if(request.getCookies() != null){
+                for(Cookie cookie : request.getCookies()){
+                    if("jwt".equals(cookie.getName())){
+                        cookie.getValue();
+                        break;
+                    }
+                }
             }
         }
             filterChain.doFilter(request,response);

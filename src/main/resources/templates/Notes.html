@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Your Notes</title>
+</head>
+<body>
+<h2>My Notes</h2>
+
+<form method="get" th:action="@{/api/notes}">
+    <input type="text" name="search" placeholder="Search by title/content" />
+    <input type="text" name="tags" placeholder="Tags (comma-separated)" />
+    <button type="submit">Search</button>
+</form>
+
+<br>
+
+<form th:action="@{/api/notes}" method="post">
+    <input type="text" name="title" placeholder="Title" required/><br>
+    <textarea name="content" placeholder="Content"></textarea><br>
+    <input type="text" name="tags" placeholder="Comma-separated tags"/><br>
+    <button type="submit">Add Note</button>
+</form>
+
+<!-- Placeholder for listing notes -->
+<div th:each="note : ${notes}">
+    <h3 th:text="${note.title}">Note Title</h3>
+    <p th:text="${note.content}">Note Content</p>
+    <p><strong>Tags:</strong> <span th:text="${note.tags}">java,rest</span></p>
+    <hr>
+</div>
+
+</body>
+</html>
